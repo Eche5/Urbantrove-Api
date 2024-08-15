@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const compression = require("compression");
 const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
+
 const logger = require("morgan");
 const rateLimit = require("express-rate-limit");
 const cors = require("cors");
@@ -25,10 +27,13 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 const store = new MongoDBStore({
-  uri: database_uri,
+  uri:
+    process.env.NODE_ENV === "development"
+      ? process.env.LOCAL_DB_URI
+      : process.env.REMOTE_DB_URI,
   collection: "sessions",
 });
-
+app.set("trust proxy", 1);
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(bodyParser.json());
@@ -36,7 +41,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(compression());
 app.use(helmet());
 app.use(logger("dev"));
-app.use(cors({ origin: true, credentials: true, optionsSuccessStatus: 200 }));
+app.use(cookieParser());
+
+app.use(cors({ origin: true, credentials: true }));
 
 app.use(
   session({
@@ -44,6 +51,12 @@ app.use(
     saveUninitialized: false,
     secret: session_secret,
     store: store,
+    cookie: {
+      sameSite: "none",
+      httpOnly: true,
+      secure: true,
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    },
   })
 );
 

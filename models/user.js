@@ -1,24 +1,20 @@
 const { Schema, model } = require("mongoose");
-const mongoose = require("mongoose");
 
 const userSchema = new Schema({
-  username: String,
+  fullname: String,
   googleId: Number,
   twitterId: Number,
   facebookId: Number,
   email: {
     type: String,
     required: true,
+    unique: true,
   },
   password: {
     type: String,
     required: true,
   },
   role: {
-    type: String,
-    required: true,
-  },
-  status: {
     type: String,
     required: true,
   },
@@ -35,6 +31,10 @@ const userSchema = new Schema({
   registeredAs: String,
   merchantCategory: String,
   category: String,
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   isActive: {
     type: Boolean,
     default: true,
